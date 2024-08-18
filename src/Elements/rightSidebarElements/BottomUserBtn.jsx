@@ -1,5 +1,5 @@
 import React from "react";
-import { auth, db } from "../../lib/firebase";
+import { db } from "../../lib/firebase";
 import { userStore } from "../../lib/userStore";
 import { useChatStore } from "../../lib/chatStore";
 import { arrayRemove, arrayUnion, doc, updateDoc } from "firebase/firestore";
@@ -37,14 +37,6 @@ export default function BottomUserBtn() {
               : isReceiverBlocked
               ? "User Blocked!!!"
               : "Block User"}
-          </button>
-        </div>
-        <div className="flex my-2">
-          <button
-            className="px-3 py-2 rounded-md flex-grow bg-slate-700 hover:bg-slate-900"
-            onClick={() => auth.signOut()}
-          >
-            Log Out
           </button>
         </div>
       </div>

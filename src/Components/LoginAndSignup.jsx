@@ -46,8 +46,9 @@ const LoginAndSignup = () => {
     formData.append("avatar", avatar.file);
     try {
       const res = await createUserWithEmailAndPassword(auth, email, password);
-      console.log(res.user.uid);
+      console.log("User UID:", res.user.uid);
       const imgurl = await upload(avatar.file);
+      console.log("Image URL:", imgurl);
       await setDoc(doc(db, "users", res.user.uid), {
         id: res.user.uid,
         username,
@@ -58,16 +59,15 @@ const LoginAndSignup = () => {
       await setDoc(doc(db, "userChat", res.user.uid), {
         chats: [],
       });
-      toast.success(
-        "Resgistered Successfully!! Now you can login and experience ChatApp"
-      );
+      toast.success("Registered Successfully!");
     } catch (error) {
-      console.log(error);
-      toast.error("Registeration failed");
+      console.error("Error during registration:", error);
+      toast.error("Registration failed");
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="flex w-[100%] gap-6 justify-evenly">

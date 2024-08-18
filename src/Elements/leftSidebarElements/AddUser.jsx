@@ -4,11 +4,11 @@ import {
   arrayUnion,
   collection,
   doc,
-  getDoc,
   getDocs,
   query,
   serverTimestamp,
   setDoc,
+  getDoc,
   updateDoc,
   where,
 } from "firebase/firestore";
@@ -17,7 +17,6 @@ import { userStore } from "../../lib/userStore";
 
 export default function AddUser() {
   const [user, setUser] = useState(null);
-
   const { currentUser } = userStore();
 
   const handleSearch = async (e) => {
@@ -27,10 +26,9 @@ export default function AddUser() {
 
     try {
       const userRef = collection(db, "users");
-
       const q = query(userRef, where("username", "==", username));
-
       const querySnapShot = await getDocs(q);
+
       if (!querySnapShot.empty) {
         querySnapShot.forEach((doc) => {
           setUser(doc.data()); // Accessing the data of the first document returned by the query
@@ -49,28 +47,49 @@ export default function AddUser() {
 
     try {
       const newChatRef = doc(chatRef);
+      // Create a new chat document
       await setDoc(newChatRef, {
         createdAt: serverTimestamp(),
         messages: [],
       });
-      await updateDoc(doc(userChatRef, user.id), {
+
+      // Ensure the userChat document for the current user exists
+      const currentUserChatRef = doc(userChatRef, currentUser.id);
+      const currentUserChatSnap = await getDoc(currentUserChatRef);
+
+      if (!currentUserChatSnap.exists()) {
+        await setDoc(currentUserChatRef, { chats: [] }, { merge: true });
+      }
+
+      // Ensure the userChat document for the other user exists
+      const otherUserChatRef = doc(userChatRef, user.id);
+      const otherUserChatSnap = await getDoc(otherUserChatRef);
+
+      if (!otherUserChatSnap.exists()) {
+        await setDoc(otherUserChatRef, { chats: [] }, { merge: true });
+      }
+
+      // Update chats for both users
+      await updateDoc(currentUserChatRef, {
         chats: arrayUnion({
           chatId: newChatRef.id,
           lastMessage: "",
-          recieverId: currentUser.id,
+          receiverId: user.id,
           updatedAt: Date.now(),
         }),
       });
-      await updateDoc(doc(userChatRef, currentUser.id), {
+
+      await updateDoc(otherUserChatRef, {
         chats: arrayUnion({
           chatId: newChatRef.id,
           lastMessage: "",
-          recieverId: user.id,
+          receiverId: currentUser.id,
           updatedAt: Date.now(),
         }),
       });
+
     } catch (error) {
-      console.log(error);
+      console.error("Error adding user:", error);
     }
   };
 
